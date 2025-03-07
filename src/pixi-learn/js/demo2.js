@@ -126,4 +126,31 @@ const app = new PIXI.Application();
 
         // Add the overlay to the stage.
         app.stage.addChild(overlay);
+
+        const s = new PIXI.ImageSource({
+            resource : PIXI.Texture.from('displacement'),
+            wrapMode : 'repeat'
+        })
+
+        const t = new PIXI.Texture({
+            source : s
+        })
+
+        new PIXI.Texture({
+            source: PIXI.Texture.from('displacement')
+        })
+
+        const sprite = PIXI.Sprite.from('displacement');
+
+        sprite.texture.baseTexture.wrapMode = 'repeat'
+
+        const filter = new PIXI.DisplacementFilter({
+            s,
+            scale: 50,
+        });
+
+        app.stage.filters = [filter];
+
+        // app.stage.addChild(filter);
+
     });
