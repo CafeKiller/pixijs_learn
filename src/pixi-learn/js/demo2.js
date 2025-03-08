@@ -127,30 +127,28 @@ const app = new PIXI.Application();
         // Add the overlay to the stage.
         app.stage.addChild(overlay);
 
-        const s = new PIXI.ImageSource({
-            resource : PIXI.Texture.from('displacement'),
-            wrapMode : 'repeat'
-        })
-
-        const t = new PIXI.Texture({
-            source : s
-        })
-
-        new PIXI.Texture({
-            source: PIXI.Texture.from('displacement')
-        })
+        //  ==================
 
         const sprite = PIXI.Sprite.from('displacement');
-
-        sprite.texture.baseTexture.wrapMode = 'repeat'
-
+        sprite.texture.baseTexture.wrapMode = 'repeat';
         const filter = new PIXI.DisplacementFilter({
-            s,
+            sprite,
             scale: 50,
         });
-
         app.stage.filters = [filter];
 
-        // app.stage.addChild(filter);
+        // const source = new PIXI.ImageSource({
+        //     resource: new Image().src = 'https://pixijs.com/assets/tutorials/fish-pond/displacement_map.png',
+        //     addressMode: 'repeat'
+        // });
+        // const texture2 = new PIXI.Texture({
+        //     source,
+        // });
+        // const filter = new PIXI.DisplacementFilter({
+        //     sprite: texture2,
+        //     scale: 50,
+        // });
+        // app.stage.filters = [filter];
+
 
     });
