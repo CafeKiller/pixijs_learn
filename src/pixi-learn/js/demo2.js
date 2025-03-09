@@ -22,13 +22,16 @@ const app = new PIXI.Application();
             { alias: 'overlay', src: 'https://pixijs.com/assets/tutorials/fish-pond/wave_overlay.png' },
             { alias: 'displacement', src: 'https://pixijs.com/assets/tutorials/fish-pond/displacement_map.png' },
         ];
+        // 加载资源到 Assets 缓存中
+        // Assets 是全局唯一的资源管理器单例
         await PIXI.Assets.load(assets);
 
     }
 
     const addFish = () => {
+        // 创建一个「鱼群」组
         const fishContainer = new PIXI.Container();
-        app.stage.addChild(fishContainer);
+        app.stage.addChild(fishContainer); // 直接将「鱼群」添加到场景中
 
         const fishCount = 20;
         const fishAssets = ['fish1', 'fish2', 'fish3', 'fish4', 'fish5'];
@@ -38,6 +41,7 @@ const app = new PIXI.Application();
             const fishAsset = fishAssets[i % fishAssets.length];
             const fish = PIXI.Sprite.from(fishAsset);
 
+            // 设置鱼的锚点
             fish.anchor.set(0.5);
 
             // 控制鱼儿的旋转半径
@@ -114,28 +118,67 @@ const app = new PIXI.Application();
         addFish()
         
 
-        // Create a water texture object.
+        // 将缓存中的 「动态水波纹」 创建为纹理对象
         const texture = PIXI.Texture.from('overlay');
 
-        // Create a tiling sprite with the water texture and specify the dimensions.
+        // 创建一个平铺精灵，用于平铺「动态水波纹」
         overlay = new PIXI.TilingSprite({
             texture,
             width: app.screen.width,
             height: app.screen.height,
         });
 
-        // Add the overlay to the stage.
         app.stage.addChild(overlay);
 
         //  ==================
 
         const sprite = PIXI.Sprite.from('displacement');
-        sprite.texture.baseTexture.wrapMode = 'repeat';
+        
+        sprite.texture.source.style.addressMode = 'repeat';
+        
         const filter = new PIXI.DisplacementFilter({
-            sprite,
+            sprite: sprite,
             scale: 50,
         });
         app.stage.filters = [filter];
+
+        console.log('Overlay texture exists:', PIXI.Assets.get('overlay'));
+        console.log('Displacement texture exists:', PIXI.Assets.get('displacement'));
+
+        // const displacementTexture = PIXI.Texture.from('displacement');
+
+        // const displacementSource = new PIXI.ImageSource({
+        //     resource: displacementTexture,
+        //     addressMode: 'repeat' // 替代原来的 setWrapMode
+        // });
+
+        // const displacementFilter = new PIXI.DisplacementFilter({
+        //     source: displacementSource,
+        //     scale: 30 // 新版本的 scale 敏感度不同，建议调低
+        // });
+
+        // app.stage.filters = [displacementFilter];
+
+
+        // 确保使用 Assets 系统获取纹理
+        // const displacementResource = PIXI.Assets.get('displacement');
+        
+        // // 创建适配 v8 的位移滤镜
+        // const displacementFilter = new PIXI.DisplacementFilter({
+        //     source: new PIXI.ImageSource({
+        //         resource: displacementResource,
+        //         addressModeU: 'repeat', // 新版使用 addressModeU/V
+        //         addressModeV: 'repeat'
+        //     }),
+        //     scale: 30
+        // });
+
+        // // 必须等待资源准备就绪
+        // displacementFilter.source.source.setup({
+        //     wrapMode: PIXI.WRAP_MODES.REPEAT
+        // }).then(() => {
+        //     app.stage.filters = [displacementFilter];
+        // });
 
         // const source = new PIXI.ImageSource({
         //     resource: new Image().src = 'https://pixijs.com/assets/tutorials/fish-pond/displacement_map.png',
