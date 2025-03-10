@@ -12,6 +12,8 @@ const hexToNumber = (hexStr) => Number('0X' + hexStr.replace(/^#/, '').toUpperCa
     await addMoon(app);
 
     addMountains(app);
+
+    addTree(app);
 })();
 
 
@@ -50,7 +52,6 @@ function addStars(app, starNumber = 100) {
     app.stage.addChild(container);
 }
 
-
 async function addMoon(app) {
 
     // 1. 使用 fetch 加载 SVG 文件
@@ -67,6 +68,7 @@ async function addMoon(app) {
 
 }
 
+// 添加山脉
 function addMountains(app) {
     const group1 = createMountainGroup(app);
     const group2 = createMountainGroup(app);
@@ -86,7 +88,7 @@ function addMountains(app) {
         if(group2.x <= -app.screen.width) {
             group2.x += app.screen.width * 2;
         }
-    })
+    });
 }
 
 // 创建三层山脉
@@ -144,6 +146,66 @@ function createMountainGroup(app) {
                 startY
             )
             .fill({ color: colorRight });
+
+    return graphics;
+}
+
+// 添加树木
+function addTree(app) {
+    const treeWidth = 200;
+    const y = app.screen.height - 20;
+    const spacing = 15;
+    const count = app.screen.width / (treeWidth + spacing) + 1;
+    const trees = new Array;
+
+    for (let _idx = 0; _idx < count; _idx++) {
+        const treeHeight = 225 + Math.random() * 50;
+        const tree = createTree(treeWidth, treeHeight);
+
+        tree.x = _idx * (treeWidth + spacing);
+        tree.y = y;
+
+        app.stage.addChild(tree);
+        trees.push(tree);
+    }
+
+    app.ticker.add((time) => {
+        const dx = time.deltaTime * 3;
+        trees.forEach( (tree) => {
+            tree.x -= dx;
+            if(tree.x <= -(treeWidth/2 + spacing)) {
+                tree.x += count * (treeWidth + spacing) + spacing * 3;
+            }
+        });
+    });
+}
+
+// 创建树木
+function createTree(width, height) {
+    const trunkWidth = 30;
+    const trunkHeight = height / 4;
+    const trunkColor = hexToNumber("#6a9752");
+
+    const graphics = new PIXI.Graphics()
+        .rect( -trunkWidth / 2, -trunkHeight, trunkWidth, trunkHeight )
+        .fill({ color: trunkColor }); 
+
+    const crownHeight = height - trunkHeight;
+    const crownLevels = 4;
+    const crownLevelHeight = crownHeight / crownLevels;
+    const crownWidthIncrement = width / crownLevels;
+    const crownColor = hexToNumber("#264d3d");
+
+    for(let _idx = 0; _idx < crownLevels; _idx++) {
+        const y = -trunkHeight - crownLevelHeight * _idx;
+        const levelWidth = width - crownWidthIncrement * _idx;
+        const offset = (_idx < crownLevels - 1) ? (crownLevelHeight/2) : 0;
+
+        graphics.moveTo(-levelWidth/2, y)
+                .lineTo(0, y - crownLevelHeight - offset)
+                .lineTo(levelWidth/2, y)
+                .fill({ color: crownColor });        
+    }
 
     return graphics;
 }
