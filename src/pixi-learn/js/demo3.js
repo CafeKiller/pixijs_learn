@@ -14,6 +14,8 @@ const hexToNumber = (hexStr) => Number('0X' + hexStr.replace(/^#/, '').toUpperCa
     addMountains(app);
 
     addTree(app);
+
+    addGroup(app);
 })();
 
 
@@ -208,4 +210,53 @@ function createTree(width, height) {
     }
 
     return graphics;
+}
+
+// 
+function addGroup(app) {
+    const width = app.screen.width;
+    const groupHeight = 20;
+    const groupY = app.screen.height;
+    
+    const group = new PIXI.Graphics()
+                    .rect(0, groupY - groupHeight, width, groupHeight)
+                    .fill({ color: hexToNumber("#DDDDDD") })
+
+    app.stage.addChild(group);
+
+    const trackHeight = 15;
+    const plankWidth = 50;
+    const plankHeight = trackHeight / 2;
+    const plankGap = 20;
+    const plankCount = width / (plankWidth + plankGap) + 1;
+    const plankY = groupY - groupHeight;
+    const planks = new Array();
+
+    for (let _idx = 0; _idx < plankCount; _idx++) {
+        const plank = new PIXI.Graphics()
+                        .rect(0, plankY - plankHeight, plankWidth, plankHeight)
+                        .fill({ color: hexToNumber("#241811") })
+
+        plank.x = _idx * (plankWidth + plankGap);
+        app.stage.addChild(plank);
+        planks.push(plank);                        
+    }
+
+    app.ticker.add((time)=> {
+        const dx = time.deltaTime * 6;
+        planks.forEach((plank)=> {
+            plank.x -= dx;
+            if(plank.x <= -(plankWidth + plankGap)) {
+                plank.x += plankCount * (plankWidth + plankGap) + plankGap * 1.5;
+            }
+        })
+    })
+
+    const railHeight = trackHeight / 2;
+    const railY = plankY - plankHeight;
+    const rail = new PIXI.Graphics()
+                    .rect(0, railY - railHeight, width, railHeight)
+                    .fill({ color: hexToNumber("#5c5c5c") })
+
+    app.stage.addChild(rail);                    
 }
