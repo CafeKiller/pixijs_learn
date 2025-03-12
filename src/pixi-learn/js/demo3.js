@@ -1,7 +1,9 @@
 const app = new PIXI.Application();
+const trainContainer = new PIXI.Container();
 
 // HEX值 转换为 16进制 Number
 const hexToNumber = (hexStr) => Number('0X' + hexStr.replace(/^#/, '').toUpperCase());
+
 
 (async () => {
     await app.init({ background: '#021f4b', resizeTo: window });
@@ -16,6 +18,8 @@ const hexToNumber = (hexStr) => Number('0X' + hexStr.replace(/^#/, '').toUpperCa
     addTree(app);
 
     addGroup(app);
+
+    createTrain(app, trainContainer);
 })();
 
 
@@ -259,4 +263,138 @@ function addGroup(app) {
                     .fill({ color: hexToNumber("#5c5c5c") })
 
     app.stage.addChild(rail);                    
+}
+
+function createTrain(app, container) {
+    const head = createTrainHead(app);
+    console.log(container);
+    
+    container.addChild(head);
+
+    app.stage.addChild(container);
+}
+
+function createTrainHead(app) {
+    const frontHeight = 100;
+    const frontWidth = 140;
+    const frontRadius = frontHeight / 2;
+
+    const cabinHeight = 200;
+    const cabinWidth = 150;
+    const cabinRadius = 15;
+
+    const chimneyBaseWidth = 30;
+    const chimneyTopWidth = 50;
+    const chimneyHeight = 70;
+    const chimneyDomeHeight = 25;
+    const chimneyTopOffset = (chimneyTopWidth - chimneyBaseWidth) / 2;
+    const chimneyStartX = cabinWidth + frontWidth - frontRadius - chimneyBaseWidth;
+    const chimneyStartY = -frontHeight;
+
+    const roofHeight = 25;
+    const roofExcess = 20;
+
+    const doorWidth = cabinWidth * 0.7;
+    const doorHeight = cabinHeight * 0.7;
+    const doorStartX = (cabinWidth - doorWidth) * 0.5;
+    const doorStartY = -(cabinHeight - doorHeight) * 0.5  - doorHeight;
+
+    const windowWidth = doorWidth * 0.8;
+    const windowHeight = doorHeight * 0.4;
+    const offset = (doorWidth - windowWidth) / 2;
+
+    const graphics = new PIXI.Graphics()
+        .moveTo(chimneyStartX, chimneyStartY)
+        .lineTo(
+            chimneyStartX - chimneyTopOffset, 
+            chimneyStartY - chimneyHeight + chimneyDomeHeight
+        )
+        .quadraticCurveTo(
+            chimneyStartX + chimneyBaseWidth / 2,
+            chimneyStartY - chimneyHeight - chimneyDomeHeight,
+            chimneyStartX + chimneyBaseWidth + chimneyTopOffset,
+            chimneyStartY - chimneyHeight + chimneyDomeHeight
+        )
+        .lineTo(chimneyStartX + chimneyBaseWidth, chimneyStartY)
+        .fill({ color: hexToNumber("#121212") })
+        .roundRect(
+            cabinWidth - frontRadius - cabinRadius,
+            -frontHeight,
+            frontWidth + frontRadius + cabinRadius,
+            frontHeight,
+            frontRadius
+        )
+        .fill( { color: hexToNumber("#7f3333") } )
+        .roundRect(
+            0, 
+            -cabinHeight, 
+            cabinWidth, 
+            cabinHeight, 
+            cabinRadius
+        )
+        .fill({ color: hexToNumber("#725f19") })
+        .rect(
+            -roofExcess / 2,
+            cabinRadius - cabinHeight - roofHeight,
+            cabinWidth + roofExcess,
+            roofHeight
+        )
+        .fill({ color: hexToNumber("#52431C") })
+        .roundRect(
+            doorStartX, 
+            doorStartY,
+            doorWidth,
+            doorHeight,
+            cabinRadius
+        )
+        .stroke({ color: hexToNumber("#52431C"), width: 3 })
+        .roundRect(
+            doorStartX + offset, 
+            doorStartY + offset,
+            windowWidth,
+            windowHeight,
+            10
+        )
+        .fill({ color: hexToNumber("#848484") });
+
+    const bigWheelRadius = 55;
+    const smallWheelRadius = 35;
+    const wheelGap = 5;
+    const wheelOffsetY = 5;
+
+    const backWheel = createTrainWheel(bigWheelRadius);
+    const midWheel = createTrainWheel(smallWheelRadius);
+    const frontWhell = createTrainWheel(smallWheelRadius);
+
+    backWheel.x = bigWheelRadius;
+    backWheel.y = wheelOffsetY;
+    midWheel.x = backWheel.x + bigWheelRadius + smallWheelRadius + wheelGap;
+    midWheel.y = backWheel.y + bigWheelRadius - smallWheelRadius;
+    frontWhell.x = midWheel.x + smallWheelRadius * 2 + wheelGap;
+    frontWhell.y = midWheel.y;
+
+    const container = new PIXI.Container();
+    container.addChild(graphics, backWheel, midWheel, frontWhell);
+    
+    app.ticker.add((time) => {        
+        const dr = time.deltaTime * 0.15;
+        backWheel.rotation += dr * (smallWheelRadius / bigWheelRadius);
+        midWheel.rotation += dr;
+        frontWhell.rotation += dr;
+    })
+
+    return container;
+}
+
+function createTrainWheel(radius) {
+    const strokeThickness = radius / 3;
+    const innerRadius = radius - strokeThickness;
+
+    return new PIXI.Graphics()
+        .circle(0, 0, radius)
+        .fill({ color: hexToNumber("#848484") })
+        .stroke({ color: hexToNumber("#121212"), width: strokeThickness, alignment: 1 })
+        .rect(-strokeThickness / 2, -innerRadius, strokeThickness, innerRadius * 2)
+        .rect(-innerRadius, -strokeThickness / 2, innerRadius * 2, strokeThickness)
+        .fill({ color: hexToNumber("#4f4f4f") });
 }
