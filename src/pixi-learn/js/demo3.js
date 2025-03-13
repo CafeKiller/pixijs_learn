@@ -266,15 +266,26 @@ function addGroup(app) {
 }
 
 function createTrain(app, container) {
+    const scale = 0.75;
     const head = createTrainHead(app);
-    console.log(container);
+    const carriage = createTarinCarriage(app);
     
+    carriage.x = -(head.width) + 50;
+
     container.addChild(head);
+    container.addChild(carriage);
 
     app.stage.addChild(container);
+
+    container.scale.set(scale);
+    container.x = app.screen.width / 2 - head.width / 2;
+    container.y = app.screen.height - 35 - 55 * scale;
 }
 
 function createTrainHead(app) {
+
+    const container = new PIXI.Container();
+
     const frontHeight = 100;
     const frontWidth = 140;
     const frontRadius = frontHeight / 2;
@@ -373,11 +384,11 @@ function createTrainHead(app) {
     frontWhell.x = midWheel.x + smallWheelRadius * 2 + wheelGap;
     frontWhell.y = midWheel.y;
 
-    const container = new PIXI.Container();
     container.addChild(graphics, backWheel, midWheel, frontWhell);
     
     app.ticker.add((time) => {        
         const dr = time.deltaTime * 0.15;
+
         backWheel.rotation += dr * (smallWheelRadius / bigWheelRadius);
         midWheel.rotation += dr;
         frontWhell.rotation += dr;
@@ -386,15 +397,87 @@ function createTrainHead(app) {
     return container;
 }
 
+function createTarinCarriage(app) {
+    const container = new PIXI.Container();
+
+    const containerHeight = 125;
+    const containerWidth = 200;
+    const containerRaduis = 15;
+    const edgeHeight = 25;
+    const edgeExcess = 20;
+    const connectorWidth = 30;
+    const connectorHeight = 10;
+    const connectorGap = 10;
+    const connectorOffsetY = 20;
+
+    const graphics = new PIXI.Graphics()
+        .roundRect(
+            edgeExcess / 2,
+            -containerHeight,
+            containerWidth,
+            containerHeight,
+            containerRaduis,
+        )
+        .fill({ color: hexToNumber("#725F19") })
+        .rect(
+            0,
+            containerRaduis,
+            -connectorHeight - edgeHeight,
+            connectorWidth + edgeExcess,
+            edgeHeight,
+        )
+        .fill({ color: hexToNumber("#52431C") })
+        .rect(
+            connectorWidth + edgeExcess / 2,
+            -connectorOffsetY - connectorHeight,
+            connectorWidth,
+            connectorHeight,
+        )
+        .rect(
+            connectorWidth + edgeExcess / 2,
+            -connectorOffsetY - connectorHeight * 2 - connectorGap,
+            connectorWidth,
+            connectorHeight,
+        )
+        .fill({ color: hexToNumber("#121212") });
+
+    const wheelRadius = 35;
+    const wheelGap = 40;
+    const centerX = (containerWidth + edgeExcess) / 2;
+    const offsetX = wheelRadius + wheelGap / 2;
+    
+    const backWheel = createTrainWheel(wheelRadius);
+    const frontWheel = createTrainWheel(wheelRadius);
+
+    backWheel.x = centerX - offsetX;
+    frontWheel.x = centerX + offsetX;
+    frontWheel.y = backWheel.y = 25;
+
+    container.addChild(graphics, backWheel, frontWheel);
+    app.ticker.add((time) => {
+        const dr = time.deltaTime * 0.15;
+
+        backWheel.rotation += dr;
+        frontWheel.rotation += dr;
+    })
+
+    return container;
+}
+
 function createTrainWheel(radius) {
+    // 轮毂参数
     const strokeThickness = radius / 3;
     const innerRadius = radius - strokeThickness;
 
     return new PIXI.Graphics()
+        // 绘制轮毂基础圆形
         .circle(0, 0, radius)
         .fill({ color: hexToNumber("#848484") })
+        // 添加轮毂轮缘效果
         .stroke({ color: hexToNumber("#121212"), width: strokeThickness, alignment: 1 })
+        // 绘制轮毂垂直辐条
         .rect(-strokeThickness / 2, -innerRadius, strokeThickness, innerRadius * 2)
+        // 绘制轮毂水平辐条
         .rect(-innerRadius, -strokeThickness / 2, innerRadius * 2, strokeThickness)
         .fill({ color: hexToNumber("#4f4f4f") });
 }
