@@ -20,6 +20,8 @@ const hexToNumber = (hexStr) => Number('0X' + hexStr.replace(/^#/, '').toUpperCa
     addGroup(app);
 
     createTrain(app, trainContainer);
+
+    addSmokes(app, trainContainer);
 })();
 
 
@@ -270,16 +272,26 @@ function createTrain(app, container) {
     const head = createTrainHead(app);
     const carriage = createTarinCarriage(app);
     
-    carriage.x = -(head.width) + 50;
+    carriage.x = -carriage.width;
 
-    container.addChild(head);
-    container.addChild(carriage);
-
+    container.addChild(head, carriage);
     app.stage.addChild(container);
 
     container.scale.set(scale);
     container.x = app.screen.width / 2 - head.width / 2;
-    container.y = app.screen.height - 35 - 55 * scale;
+
+    let elapsed = 0;
+    const shakeDistance = 3;
+    const baseY = app.screen.height - 35 - 55 * scale;
+    const speed = 0.5;
+
+    trainContainer.y = baseY;
+
+    app.ticker.add((time) => {
+        elapsed += time.deltaTime;
+        const offset = (Math.sin(elapsed * 0.5 * speed) * 0.5 + 0.5) * shakeDistance;
+        container.y = baseY + offset;
+    })
 }
 
 function createTrainHead(app) {
@@ -480,4 +492,49 @@ function createTrainWheel(radius) {
         // 绘制轮毂水平辐条
         .rect(-innerRadius, -strokeThickness / 2, innerRadius * 2, strokeThickness)
         .fill({ color: hexToNumber("#4f4f4f") });
+}
+
+function addSmokes(app, container) {
+    const groupCount = 5;
+    const particleCount = 7;
+    const groups = new Array();
+    const baseX = container.x + 170;
+    const baseY = container.y - 120;
+
+    console.log(container);
+    
+
+    for (let _idx = 0; _idx < groupCount; _idx++) {
+        const smokeGroup = new PIXI.Graphics();
+
+        for (let __idx = 0; __idx < particleCount; __idx++) {
+            const radius = 20 + Math.random() * 20;
+            const x = (Math.random() * 2 - 1) * 40;
+            const y = (Math.random() * 2 - 1) * 40;
+
+            smokeGroup.circle(x, y, radius);
+        }
+
+        smokeGroup.fill({ color: hexToNumber("#C9C9C9")});
+
+        smokeGroup.x = baseX;
+        smokeGroup.y = baseY;
+        smokeGroup.tick = _idx * (1 / groupCount);
+        
+        app.stage.addChild(smokeGroup);
+        groups.push(smokeGroup);
+    }
+
+    app.ticker.add((time) => {
+        const dt = time.deltaTime * 0.01;
+        groups.forEach((group) => {
+            group.tick = (group + dt) % 1;
+            group.x = baseX - Math.pow(group.tick, 2) * 400;
+            group.y = baseY - group.tick * 200;
+            group.scale.set(Math.pow(group.tick, 0.75));
+            group.alpha = Math.pow(group.tick, 0.5);
+        })
+    })
+
+    // app.stage.addChild(groups);
 }
